@@ -2,5 +2,5 @@
 # Custom client configuration file
 Host 54.84.204.36
 	User ubuntu
-	IdentityFile ~/.ssh/holberton
+	IdentityFile ~/.ssh/school
 	BatchMode yes
