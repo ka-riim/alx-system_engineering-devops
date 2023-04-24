@@ -5,7 +5,7 @@ exec { 'install ruby':
 }
 
 exec { 'install puppet-lint':
-  command => '/usr/bin/gem install puppet-lint -v 2.1.1'
+  command => '/usr/bin/gem install puppet-lint -v 2.1.0'
 }
 
 package { 'ruby':
