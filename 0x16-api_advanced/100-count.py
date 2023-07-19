@@ -1,45 +1,43 @@
 #!/usr/bin/python3
-"""
-Queries the Reddit API, parses the title of all hot articles, and prints a
-sorted count of given keywords.
-"""
+""" simple comment """
+from operator import itemgetter
 import requests
 
 
-def count_words(subreddit, word_list, hot_list=[], viewed_count=0, after=''):
-    """
-    Queries the Reddit API, parses the title of all hot articles, and prints a
-    sorted count of given keywords.
-    """
-    base = 'https://www.reddit.com/'
-    endpoint = 'r/{}/hot.json'.format(subreddit)
-    query_string = '?show="all"&limit=100&after={}&count={}'.format(
-        after, viewed_count)
-    url = base + endpoint + query_string
-    headers = {'User-Agent': 'Python/1.0(Holberton School 0x16 task 3)'}
-    response = requests.get(url, headers=headers)
-    if not response.ok:
-            return
-
-    data = response.json()['data']
-    for post in data['children']:
-        hot_list.append(post['data']['title'])
-    after = data['after']
-    dist = data['dist']
-    if (after):
-        count_words(subreddit, [], hot_list, viewed_count + dist, after)
-
-    if viewed_count == 0:
-        result = {}
-        word_list = [word.lower() for word in word_list]
-        hot_words = ' '.join(hot_list).lower().split(' ')
-        for hot_word in hot_words:
-            for search_word in word_list:
-                if hot_word == search_word:
-                    result.setdefault(search_word, 0)
-                    result[search_word] += 1
-
-        for word, count in sorted(
-            sorted(result.items()), key=lambda x: x[1], reverse=True
-        ):
-            print("{}: {}".format(word, count))
+def count_words(subreddit, word_list, hot_list=[], init=0, after="null"):
+    url = "https://www.reddit.com/r/{}/hot.json".format(subreddit)
+    agt = {"User-Agent": "linux:1:v2.1 (by /u/heimer_r)"}
+    payload = {"limit": "100", "after": after}
+    hot = requests.get(url, headers=agt, params=payload, allow_redirects=False)
+    if hot.status_code == 200:
+        posts = hot.json().get("data").get("children")
+        hot_list += [post.get("data").get("title") for post in posts]
+        after = hot.json().get("data").get("after")
+        if after is not None:
+            count_words(subreddit, word_list, hot_list, 1, after)
+        if init == 0:
+            hot_str = " ".join(hot_list)
+            hot_words = hot_str.split(" ")
+            word_list_low = sorted(word_list)
+            rt = []
+            for word in word_list_low:
+                num = len(
+                    list(
+                        filter(
+                            lambda hot_w: hot_w.lower() == word.lower(),
+                            hot_words)))
+                if num != 0:
+                    rt.append([word, num])
+            if len(rt) != 0:
+                i = 0
+                while i < len(rt) - 1:
+                    if rt[i + 1][0] is not None and rt[i][0] == rt[i + 1][0]:
+                        rt[i][1] += rt[i + 1][1]
+                        rt.pop(i + 1)
+                        rt.append([None, None])
+                        i -= 1
+                    i += 1
+                r = list(filter(lambda x: x != [None, None], rt))
+                r_sorted = sorted(r, key=lambda x: (x[1]), reverse=True)
+                for i in r_sorted:
+                    print(*i, sep=": ")
